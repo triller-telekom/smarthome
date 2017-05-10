@@ -19,12 +19,16 @@ import javax.servlet.ServletException;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 
+import org.apache.commons.lang.StringUtils;
 import org.eclipse.emf.common.util.EList;
 import org.eclipse.smarthome.core.items.GenericItem;
 import org.eclipse.smarthome.core.items.Item;
 import org.eclipse.smarthome.core.items.ItemNotFoundException;
 import org.eclipse.smarthome.core.items.StateChangeListener;
 import org.eclipse.smarthome.core.types.State;
+import org.eclipse.smarthome.model.core.EventType;
+import org.eclipse.smarthome.model.core.ModelRepository;
+import org.eclipse.smarthome.model.core.ModelRepositoryChangeListener;
 import org.eclipse.smarthome.model.sitemap.Frame;
 import org.eclipse.smarthome.model.sitemap.LinkableWidget;
 import org.eclipse.smarthome.model.sitemap.Sitemap;
@@ -44,7 +48,7 @@ import org.slf4j.LoggerFactory;
  * @author Kai Kreuzer - Initial contribution and API
  *
  */
-public class WebAppServlet extends BaseServlet {
+public class WebAppServlet extends BaseServlet implements ModelRepositoryChangeListener {
 
     private final Logger logger = LoggerFactory.getLogger(WebAppServlet.class);
 
@@ -57,7 +61,11 @@ public class WebAppServlet extends BaseServlet {
     /** the name of the servlet to be used in the URL */
     public static final String SERVLET_NAME = "app";
 
+    private static final String SITEMAP_SUFFIX = ".sitemap";
+
     private PageRenderer renderer;
+    private ModelRepository modelRepo;
+    private String nameOfChangedSitemap = null;
     protected Set<SitemapProvider> sitemapProviders = new CopyOnWriteArraySet<>();
 
     private WebAppConfig config = new WebAppConfig();
@@ -68,6 +76,16 @@ public class WebAppServlet extends BaseServlet {
 
     public void removeSitemapProvider(SitemapProvider sitemapProvider) {
         this.sitemapProviders.remove(sitemapProvider);
+    }
+
+    public void addModelRepository(ModelRepository modelRepo) {
+        this.modelRepo = modelRepo;
+        this.modelRepo.addModelRepositoryChangeListener(this);
+    }
+
+    public void removeModelRepository(ModelRepository modelRepo) {
+        this.modelRepo.removeModelRepositoryChangeListener(this);
+        this.modelRepo = null;
     }
 
     public void setPageRenderer(PageRenderer renderer) {
@@ -118,13 +136,8 @@ public class WebAppServlet extends BaseServlet {
         }
         StringBuilder result = new StringBuilder();
 
-        Sitemap sitemap = null;
-        for (SitemapProvider sitemapProvider : sitemapProviders) {
-            sitemap = sitemapProvider.getSitemap(sitemapName);
-            if (sitemap != null) {
-                break;
-            }
-        }
+        Sitemap sitemap = loadSitemap(sitemapName);
+
         try {
             if (sitemap == null) {
                 throw new RenderException("Sitemap '" + sitemapName + "' could not be found");
@@ -138,6 +151,11 @@ public class WebAppServlet extends BaseServlet {
                     // we have reached the timeout, so we do not return any content as nothing has changed
                     res.getWriter().append(getTimeoutResponse()).close();
                     return;
+                }
+
+                if (nameOfChangedSitemap != null && nameOfChangedSitemap.equals(sitemapName)) {
+                    sitemap = loadSitemap(sitemapName);
+                    nameOfChangedSitemap = null;
                 }
                 result.append(renderer.processPage("Home", sitemapName, label, sitemap.getChildren(), async));
             } else if (!widgetId.equals("Colorpicker")) {
@@ -157,8 +175,19 @@ public class WebAppServlet extends BaseServlet {
                         res.getWriter().append(getTimeoutResponse()).close();
                         return;
                     }
+
+                    if (nameOfChangedSitemap != null && nameOfChangedSitemap.equals(sitemapName)) {
+                        // reload sitemap and widget from new sitemap
+                        sitemap = loadSitemap(sitemapName);
+                        w = renderer.getItemUIRegistry().getWidget(sitemap, widgetId);
+                        nameOfChangedSitemap = null;
+                    }
+                    // result.append(renderer.processPage(renderer.getItemUIRegistry().getWidgetId(w), sitemapName,
+                    // label,
+                    // children, async));
+
                     result.append(renderer.processPage(renderer.getItemUIRegistry().getWidgetId(w), sitemapName, label,
-                            children, async));
+                            renderer.getItemUIRegistry().getChildren((LinkableWidget) w), async));
                 }
             }
         } catch (RenderException e) {
@@ -171,6 +200,17 @@ public class WebAppServlet extends BaseServlet {
         }
         res.getWriter().append(result);
         res.getWriter().close();
+    }
+
+    private Sitemap loadSitemap(String sitemapName) {
+        Sitemap sitemap = null;
+        for (SitemapProvider sitemapProvider : sitemapProviders) {
+            sitemap = sitemapProvider.getSitemap(sitemapName);
+            if (sitemap != null) {
+                break;
+            }
+        }
+        return sitemap;
     }
 
     /**
@@ -196,7 +236,7 @@ public class WebAppServlet extends BaseServlet {
         for (GenericItem item : items) {
             item.addStateChangeListener(listener);
         }
-        while (!listener.hasChangeOccurred() && !timeout) {
+        while (!listener.hasChangeOccurred() && !timeout && (nameOfChangedSitemap == null)) {
             timeout = (new Date()).getTime() - startTime > TIMEOUT_IN_MS;
             try {
                 Thread.sleep(300);
@@ -209,6 +249,14 @@ public class WebAppServlet extends BaseServlet {
             item.removeStateChangeListener(listener);
         }
         return !timeout;
+    }
+
+    @Override
+    public void modelChanged(String modelName, EventType type) {
+        if (type != EventType.MODIFIED || !modelName.endsWith(SITEMAP_SUFFIX)) {
+            return; // we process only sitemap modifications here
+        }
+        nameOfChangedSitemap = StringUtils.removeEnd(modelName, SITEMAP_SUFFIX);
     }
 
     /**
