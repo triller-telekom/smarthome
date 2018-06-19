@@ -100,7 +100,7 @@ angular.module('PaperUI.things') //
             $mdDialog.hide();
         });
     }
-}).controller('LinkChannelDialogController', function($rootScope, $scope, $mdDialog, $filter, toastService, itemRepository, itemService, sharedProperties, params) {
+}).controller('LinkChannelDialogController', function($rootScope, $scope, $mdDialog, $filter, toastService, itemRepository, itemService, configDescriptionService, sharedProperties, params) {
     $scope.itemName;
     $scope.linkedItems = params.linkedItems;
     $scope.advancedMode = $rootScope.advancedMode;
