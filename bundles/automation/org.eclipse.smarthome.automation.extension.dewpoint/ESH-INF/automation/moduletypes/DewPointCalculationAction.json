@@ -1,0 +1,23 @@
+{  
+   "actions":[  
+      {  
+         "uid":"DewPointCalculationAction",
+         "label":"DewPoint Calculation Action",
+         "description":"Calculates the dew point from temperature and humidity items.",
+         "inputs":[  
+            {  
+               "name":"temperatureItemName",
+               "type":"java.lang.String",
+               "label":"Temperature Item",
+               "description":"Item containing the temperature value."
+            },
+            {  
+               "name":"humidityItemName",
+               "type":"java.lang.String",
+               "label":"Humidity Item",
+               "description":"Item containing the humidity value."
+            }
+         ]
+      }
+   ]
+}

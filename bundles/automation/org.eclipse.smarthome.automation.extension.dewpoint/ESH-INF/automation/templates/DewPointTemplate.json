@@ -1,0 +1,129 @@
+[  
+  {  
+    "uid":"DewPointTemplate",
+    "description":"Calculate Dew Point Template",
+    "tags":[
+      "rule",
+      "template"
+    ],
+    "configDescriptions":[  
+         {
+          "name":"humidity_item",              
+          "type": "TEXT",
+          "context": "item",
+          "description": "Item containing the humidity value.",
+          "required": true
+        },
+         {
+          "name":"temperature_item",              
+          "type": "TEXT",
+          "context": "item",
+          "description": "Item containing the temperature value.",
+          "required": true
+        },
+        {
+          "name":"dewPoint_item",              
+          "type": "TEXT",
+          "context": "item",
+          "description": "Item receiving the dew point value.",
+          "required": true
+        }
+    ],
+    "__triggers": [  
+      {  
+        "id": "TempTrigger",
+        "type": "core.ItemStateChangeTrigger",
+        "label": "Temperature Trigger",
+        "description": "This is the trigger for the temperature item.",
+        "configuration": {
+          "itemName": "${temperature_item}"
+        }
+      },
+      {  
+        "id": "HumTrigger",
+        "type": "core.ItemStateChangeTrigger",
+        "label": "Humidity Trigger",
+        "description": "This is the trigger for the humidity item.",
+        "configuration": {
+          "itemName": "${humidity_item}"
+        }
+      }
+    ],
+    "triggers": [  
+      {  
+        "id": "MultiTrigger",
+        "type": "MultiItemStateChangeTrigger",
+        "label": "MultiTrigger Label",
+        "description": "This is the multi trigger.",
+        "configuration": {
+          "itemName": ["${temperature_item}", "${humidity_item}"],
+          "testValueTemp" : "${temperature_item}"
+        }
+      }
+    ],
+    "conditions": [
+    ],
+    "actions": [      
+      {  
+        "id": "MyDuePointBundleAction",
+        "type": "DewPointCalculationAction",
+        "label": "Action in Bundle",
+        "description": "My description",
+        "configuration": {
+          "temperatureItemName": "${temperature_item}",
+          "humidityItemName": "${humidity_item}"
+        }
+      },      
+      {  
+        "id": "MyScriptDewPointAction",
+        "type": "script.ScriptAction",
+        "label": "Sample Dew Point Calculate Action",
+        "description": "Calculates the dew point.",
+        "configuration": {
+          "type": "js",
+          "script": "print('hello world'); var temp = items.get('${temperature_item}'); var hum = items.get('${humidity_item}'); print('values: ' + temp + ' ' + hum ); var temp_item = ir.get('${temperature_item}'); print('temp_item: ' + temp_item); var temp_qt = temp_item.getStateAs(QuantityType.class); var temp_cel = temp_qt.toUnit(SIUnits.CELSIUS); print('cel: ' + temp_cel);"
+        }
+      }
+    ],
+    "__actions": [
+      {  
+        "id": "MyPrintActionTemp",
+        "type": "ConsolePrintAction",
+        "label": "Sample Test Debug Print Action",
+        "description": "Bla bla blubb",
+        "configuration": {
+          "printValue": "TempTrigger.event"
+        }
+      },
+      {  
+        "id": "MyPrintActionHum",
+        "type": "ConsolePrintAction",
+        "label": "Sample Test Debug Print Action",
+        "description": "Bla bla blubb",
+        "configuration": {
+          "printValue": "HumTrigger.event"
+        }
+      },
+      {  
+        "id": "MyDuePointBundleAction",
+        "type": "DewPointCalculationAction",
+        "label": "Action in Bundle",
+        "description": "My description",
+        "configuration": {
+          "temperatureItemName": "${temperature_item}",
+          "humidityItemName": "${humidity_item}"
+        }
+      },      
+      {  
+        "id": "MyScriptDewPointAction",
+        "type": "script.ScriptAction",
+        "label": "Sample Dew Point Calculate Action",
+        "description": "Calculates the dew point.",
+        "configuration": {
+          "type": "js",
+          "script": "print('hello world'); var temp = items.get('${temperature_item}'); var hum = items.get('${humidity_item}'); print('values: ' + temp + ' ' + hum ); var temp_item = ir.get('${temperature_item}'); print('temp_item: ' + temp_item); var temp_qt = temp_item.getStateAs(QuantityType.class); var temp_cel = temp_qt.toUnit(SIUnits.CELSIUS); print('cel: ' + temp_cel);"
+        }
+      }
+    ]
+  }
+]

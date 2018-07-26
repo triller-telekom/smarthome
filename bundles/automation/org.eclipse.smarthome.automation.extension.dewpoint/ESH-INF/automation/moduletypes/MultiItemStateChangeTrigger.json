@@ -1,0 +1,32 @@
+{  
+   "triggers":[  
+      {  
+         "uid":"MultiItemStateChangeTrigger",
+         "label":"Trigger for multiple items.",
+         "description":"Triggers on ItemStateChanges for multiple items and provides their current states.",
+         "configDescriptions":[  
+            {  
+               "name":"itemName",
+               "type":"TEXT",
+               "description":"Name of the item to react on.",
+               "multiple":true,
+               "required":true
+            }
+         ],
+         "outputs":[  
+            {  
+               "name":"itemStates",
+               "type":"java.util.HashMap",
+               "label":"Map of item states",
+               "description":"Map containing item states"
+            },
+            {  
+               "name":"sourceItem",
+               "type":"java.lang.String",
+               "label":"Source item",
+               "description":"Item which triggered a StateChange"
+            }
+         ]
+      }
+   ]
+}

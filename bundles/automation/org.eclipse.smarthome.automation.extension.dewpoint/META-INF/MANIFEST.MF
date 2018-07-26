@@ -1,0 +1,25 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: Automation DewPoint Calculation Action
+Bundle-RequiredExecutionEnvironment: JavaSE-1.8
+Bundle-SymbolicName: org.eclipse.smarthome.automation.extension.dewpoint
+Bundle-Vendor: Eclipse.org/SmartHome
+Bundle-Version: 0.10.0.qualifier
+Import-Package: 
+ org.eclipse.jdt.annotation;resolution:=optional,
+ org.eclipse.smarthome.automation,
+ org.eclipse.smarthome.automation.handler,
+ org.eclipse.smarthome.automation.type,
+ org.eclipse.smarthome.config.core,
+ org.eclipse.smarthome.core.common.registry,
+ org.eclipse.smarthome.core.events,
+ org.eclipse.smarthome.core.items,
+ org.eclipse.smarthome.core.items.events,
+ org.eclipse.smarthome.core.types,
+ org.osgi.framework,
+ org.osgi.service.event,
+ org.osgi.util.tracker,
+ org.slf4j
+Automatic-Module-Name: org.eclipse.smarthome.automation.extension.dewpoint
+Service-Component: OSGI-INF/org.eclipse.smarthome.automation.extension.dewpoint.internal.DewPointModuleFactory.xml
+Bundle-ActivationPolicy: lazy
