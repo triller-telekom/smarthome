@@ -1,0 +1,68 @@
+[
+  {
+    "uid":"DewPointTemplate",
+    "description":"Calculate Dew Point Template",
+    "tags":[
+      "rule",
+      "template"
+    ],
+    "configDescriptions":[
+         {
+          "name":"humidity_item",
+          "type": "TEXT",
+          "context": "item",
+          "description": "Item containing the humidity value.",
+          "required": true
+        },
+         {
+          "name":"temperature_item",
+          "type": "TEXT",
+          "context": "item",
+          "description": "Item containing the temperature value.",
+          "required": true
+        },
+        {
+          "name":"dewPoint_item",
+          "type": "TEXT",
+          "context": "item",
+          "description": "Item receiving the dew point value.",
+          "required": true
+        }
+    ],
+    "triggers": [
+      {
+        "id": "MultiTrigger",
+        "type": "MultiItemStateChangeTrigger",
+        "label": "MultiTrigger",
+        "description": "Reacts on multiple items and outputs their states.",
+        "configuration": {
+          "itemName": ["${temperature_item}", "${humidity_item}"]
+        }
+      }
+    ],
+    "conditions": [
+    ],
+    "actions": [
+      {
+        "id": "MyDuePointBundleAction",
+        "type": "DewPointCalculationAction",
+        "label": "Calculate the dew point.",
+        "description": "Calculates the dew point based on inputs.",
+        "inputs" : {
+          "temperatureItemState" : "MultiTrigger.itemStates.Weather_Temperature",
+          "humidityItemState" : "MultiTrigger.itemStates.Weather_Humidity"
+        }
+      },
+      {
+        "id": "MyChangeTargetItemAction",
+        "type": "script.ScriptAction",
+        "label": "Change Target Item",
+        "description": "Changes the state of the target item.",
+        "configuration": {
+          "type": "application/javascript",
+          "script": "events.sendCommand('${dewPoint_item}', ctx.get('MyDuePointBundleAction.dewPoint'))"
+        }
+      }
+    ]
+  }
+]
